@@ -41,7 +41,45 @@ class	Map
 	}
 }
 
+class	Player
+{
+    constructor()
+	{
+        this.x = WINDOW_WIDTH / 2;
+        this.y = WINDOW_HEIGHT / 2;
+        this.radius = 3;
+        this.turnDirection = 0; // -1 if left, +1 if right
+        this.walkDirection = 0; // -1 if back, +1 if front
+        this.rotationAngle = Math.PI / 2;
+        this.moveSpeed = 2.0;
+        this.rotationSpeed = 2 * (Math.PI / 180);
+    }
+    update()
+	{
+        // this.rotationAngle += this.turnDirection * this.rotationSpeed;
+
+        // var moveStep = this.walkDirection * this.moveSpeed;
+
+        // this.x = this.x + Math.cos(this.rotationAngle) * moveStep;
+        // this.y = this.y + Math.sin(this.rotationAngle) * moveStep;
+    }
+    render()
+	{
+        // noStroke();
+        fill("red");
+        circle(this.x, this.y, this.radius);
+        // stroke("red");
+        // line(
+        //     this.x,
+        //     this.y,
+        //     this.x + Math.cos(this.rotationAngle) * 30,
+        //     this.y + Math.sin(this.rotationAngle) * 30
+        // );
+    }
+}
+
 var	grid = new Map();
+var	player = new Player;
 
 function	setup()
 {
@@ -50,7 +88,7 @@ function	setup()
 
 function	update()
 {
-	// TODO: update all game objects before we render the next frame
+	player.update();
 }
 
 function	draw()
@@ -58,4 +96,5 @@ function	draw()
 	update();
 
 	grid.render();
+	player.render();
 }
