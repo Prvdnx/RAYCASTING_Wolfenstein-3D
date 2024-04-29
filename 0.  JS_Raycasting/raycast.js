@@ -24,6 +24,15 @@ class	Map
 			[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 		];
 	}
+    hasWallAt(x, y)
+	{
+        if (x < 0 || x > WINDOW_WIDTH || y < 0 || y > WINDOW_HEIGHT)
+            return (true);
+
+        var mapGridIndexX = Math.floor(x / TILE_SIZE);
+        var mapGridIndexY = Math.floor(y / TILE_SIZE);
+        return (this.grid[mapGridIndexY][mapGridIndexX] != 0);
+	}
 	render()
 	{
 		for (var i = 0; i < MAP_NUM_ROWS; i++)
@@ -60,8 +69,15 @@ class	Player
 
 		var moveStep = this.walkDirection * this.moveSpeed;
 
-		this.x = this.x + Math.cos(this.rotationAngle) * moveStep;
-		this.y = this.y + Math.sin(this.rotationAngle) * moveStep;
+		var	newPlayerX = this.x + Math.cos(this.rotationAngle) * moveStep;
+		var	newPlayerY = this.y + Math.sin(this.rotationAngle) * moveStep;
+
+		// only set new player position if player is not colliding with map wall
+		if (!grid.hasWallAt(newPlayerX, newPlayerY))
+		{
+			this.x = newPlayerX;
+			this.y = newPlayerY;
+		}
 	}
 	render()
 	{
