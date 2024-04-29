@@ -8,7 +8,7 @@ const WINDOW_HEIGHT = MAP_NUM_ROWS * TILE_SIZE;
 
 const FOV_ANGLE = 60 * (Math.PI / 180);
 
-const WALL_STRIP_WIDTH = 10;
+const WALL_STRIP_WIDTH = 30;
 const NUM_RAYS = WINDOW_WIDTH / WALL_STRIP_WIDTH;
 
 class	Map
@@ -19,11 +19,11 @@ class	Map
 			[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
 			[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-			[1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+			[1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
 			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
 			[1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+			[1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+			[1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
 			[1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1],
 			[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
 			[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -103,7 +103,66 @@ class	Ray
 {
 	constructor(rayAngle)
 	{
-		this.rayAngle = rayAngle;
+		this.rayAngle = normalizeAngle(rayAngle);
+		this.wallHitX = 0;
+		this.wallHitY = 0;
+		this.distance = 0;
+	}
+	cast(columnId)
+	{
+		var	xintercept;
+		var	yintercept;
+		var xstep;
+		var	ystep;
+
+		//=======================================//
+		// HORIZONTAL RAY-GRID INTERSECTION CODE //
+		//=======================================//
+		var	foundHorzWallHit = false;
+		var	wallHitX = 0;
+		var	wallHitY = 0;
+
+		// Find the y-coordinate of the closest horizontal grid intersenction
+		yintercept = Math.floor(player.y / TILE_SIZE) * TILE_SIZE;
+		yintercept += this.isRayFacingDown ? TILE_SIZE : 0;
+
+		// Find the x-coordinate of the closest horizontal grid intersection
+		xintercept = player.x + (yintercept - player.y) / Math.tan(this.rayAngle);
+
+		// Calculate the increment xstep and ystep
+		ystep = TILE_SIZE;
+		ystep *= this.isRayFacingUp ? -1 : 1;
+
+		xstep = TILE_SIZE / Math.tan(this.rayAngle);
+		xstep *= (this.isRayFacingLeft && xstep > 0) ? -1 : 1;
+		xstep *= (this.isRayFacingRight && xstep < 0) ? -1 : 1;
+
+		var	nextHorzTouchX = xintercept;
+		var	nextHorzTouchY = yintercept;
+
+		if (this.isRayFacingUp)
+			nextHorzTouchY--;
+
+		// Increment xstep and ystep until we find a wall
+		while (nextHorzTouchX >= 0 && nextHorzTouchX <= WINDOW_WIDTH && nextHorzTouchY >= 0 && nextHorzTouchY <= WINDOW_HEIGHT)
+		{
+			if (grid.hasWallAt(nextHorzTouchX, nextHorzTouchY))
+			{
+				foundHorzWallHit = true;
+				wallHitX = nextHorzTouchX;
+				wallHitY = nextHorzTouchY;
+				
+				stroke("red");
+				line(player.x, player.y, wallHitX, wallHitY);
+				
+				break;
+			}
+			else
+			{
+				nextHorzTouchX += xstep;
+				nextHorzTouchY += ystep;
+			}
+		}
 	}
 	render()
 	{
@@ -159,13 +218,21 @@ function	castAllRays()
 	for (var i = 0; i < NUM_RAYS; i++)
 	{
 		var	ray = new Ray(rayAngle);
-		// ray.cast();...
+		ray.cast(columnId);
 		rays.push(ray);
 
 		rayAngle += FOV_ANGLE / NUM_RAYS;
 
 		columnId++;
 	}
+}
+
+function	normalizeAngle(angle)
+{
+	angle = angle % (2 * Math.PI);
+	if (angle < 0)
+		angle = (2 * Math.PI) + angle;
+	return (angle);	
 }
 
 function	setup()
